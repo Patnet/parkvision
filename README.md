@@ -2,7 +2,7 @@
 
 MVP de stationnement intelligent hybride — aide à trouver un stationnement **légal**, sans garantir qu'une place reste disponible.
 
-> **Statut actuel : phase de cadrage.** Aucun code n'est encore implémenté. Le périmètre engagé est strictement limité aux lots 1 et 2 (socle cartographique simulé + Destination Assist simulé + signalement manuel simulé). Voir [§24 et §§26-34 de la v1.4](./ParkVision_Cahier_des_charges_Codex_v1_4.md) pour l'arbitrage de scope.
+> **Statut actuel : socle lots 1-2 implémenté et vérifié localement.** Monorepo, API Fastify/PostGIS, simulateur SIM-45100, web Next.js (carte, Destination Assist, signalement manuel) fonctionnels en local avec Docker. Le périmètre reste strictement limité aux lots 1 et 2. Voir [§24 et §§26-34 de la v1.4](./ParkVision_Cahier_des_charges_Codex_v1_4.md) pour l'arbitrage de scope.
 
 ## Mission
 
@@ -40,31 +40,62 @@ Ces fonctionnalités restent des pistes de recherche conditionnelles, chacune so
 
 ```
 apps/
-  mobile/              # Flutter (différé)
-  admin/               # Next.js, MapLibre GL JS
-  web/                 # Next.js — landing + recherche accessible
+  web/                 # Next.js — carte, Destination Assist, onboarding, aide
+  mobile/              # Flutter (différé, non implémenté)
+  admin/               # Console admin (différé, non implémenté)
 services/
-  api/                 # Node.js TypeScript, Fastify, Zod, OpenAPI
-  prediction/          # Python FastAPI (différé)
-  simulator/           # générateur déterministe d'événements fictifs
+  api/                 # Node.js TypeScript, Fastify, Zod, OpenAPI, PostGIS
+  simulator/           # générateur déterministe du quartier fictif SIM-45100
+  prediction/          # Python FastAPI (différé, non implémenté)
 packages/
-  contracts/           # schémas OpenAPI, JSON Schema, types
-  geo/                 # utilitaires géographiques
+  contracts/           # schémas Zod partagés (statuts, règles, API)
+  geo/                 # utilitaires géographiques (distance, rayon)
 infra/
-  docker/              # PostgreSQL/PostGIS, API, admin, simulator
-  migrations/
-  monitoring/
+  docker/              # docker-compose.yml : PostgreSQL/PostGIS, API, web
+  migrations/          # schéma SQL versionné
 ```
 
 ## Démarrage
 
-Aucun environnement exécutable n'est encore disponible dans ce dépôt. La procédure cible pour les lots 1-2 sera :
-
 ```bash
-docker compose up --build
+cp .env.example .env
+docker compose -f infra/docker/docker-compose.yml --env-file .env up --build
 ```
 
-Ce README sera mis à jour dès que le socle (lot 1) sera implémenté.
+Puis, dans un autre terminal, une fois la base démarrée :
+
+```bash
+pnpm install
+pnpm db:migrate   # applique infra/migrations/*.sql
+pnpm db:seed      # peuple le quartier fictif SIM-45100 (60 places, 4 rues)
+```
+
+- Web : http://localhost:3000 (carte, Destination Assist, aide, onboarding)
+- API : http://localhost:3001 — documentation OpenAPI sur http://localhost:3001/docs
+
+En développement sans Docker pour le code applicatif (seule la base a besoin de Docker) :
+
+```bash
+docker compose -f infra/docker/docker-compose.yml --env-file .env up -d postgres
+pnpm db:migrate && pnpm db:seed
+pnpm --filter @parkvision/api run dev    # :3001
+pnpm --filter @parkvision/web run dev    # :3000
+```
+
+### Tests
+
+```bash
+pnpm test   # packages/geo, services/simulator, services/api (26 tests)
+```
+
+Les tests de l'API couvrent le moteur d'agrégation d'occupation (`availability.ts` — jamais de `FREE_CONFIRMED`/`OCCUPIED_CONFIRMED` sur simple déclaration, gestion des contradictions et expirations) et l'éligibilité légale (`legalEligibility.ts` — exclusion PMR/privé même si vide). Le simulateur est testé pour sa reproductibilité (seed fixe, 60 places, 4 rues).
+
+### Vérifié localement (2026-11-08)
+
+- `pnpm install`, migrations, seed, API et web démarrés avec succès.
+- Endpoints testés manuellement : `/v1/health`, `/v1/geo/postal-codes`, `/v1/parking/spaces` (bbox, 60 résultats), `/v1/parking/spaces/:id`, `/v1/destinations/search`, `/v1/destinations/recommendations`, `/v1/observations` (idempotence confirmée).
+- Pages web testées via requêtes HTTP (200 sur `/`, `/destination`, `/aide`, `/onboarding`) ; **non vérifiées visuellement dans un navigateur** (outil indisponible dans cet environnement) — à faire avant toute démonstration.
+- Non fait : console admin, Flutter, tests E2E navigateur, CI.
 
 ## Principes non négociables
 

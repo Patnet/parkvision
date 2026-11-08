@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/ToastProvider";
 import {
   fetchRecommendations,
   reportParkingEvent,
@@ -26,25 +27,26 @@ export default function DestinationPage() {
   const [arrivalAt, setArrivalAt] = useState<string>("");
   const [accessibility, setAccessibility] = useState(false);
   const [zones, setZones] = useState<RankedZoneDto[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     try {
       const results = await searchDestinations(query);
       setCandidates(results);
       setSelected(results[0] ?? null);
+      if (results.length === 0) {
+        showToast("Aucune destination trouvée dans le quartier fictif SIM-45100.", "info");
+      }
     } catch {
-      setError("Géocodage indisponible (adaptateur mock SIM-45100 uniquement).");
+      showToast("Géocodage indisponible (adaptateur mock SIM-45100 uniquement).", "error");
     }
   }
 
   async function handleRecommend() {
     if (!selected) return;
     setLoading(true);
-    setError(null);
     try {
       const results = await fetchRecommendations({
         destination: selected,
@@ -55,7 +57,7 @@ export default function DestinationPage() {
       });
       setZones(results);
     } catch {
-      setError("Calcul des zones indisponible pour l'instant.");
+      showToast("Calcul des zones indisponible pour l'instant.", "error");
     } finally {
       setLoading(false);
     }
@@ -68,9 +70,13 @@ export default function DestinationPage() {
         kind,
         occupancy: kind === "PARKING" ? "OCCUPIED_REPORTED" : "FREE_REPORTED",
       });
+      showToast(
+        kind === "PARKING" ? "Signalement « Je me gare » enregistré." : "Signalement « Je pars » enregistré.",
+        "success",
+      );
       await handleRecommend();
     } catch {
-      setError("Signalement impossible pour l'instant.");
+      showToast("Signalement impossible pour l'instant.", "error");
     }
   }
 
@@ -160,7 +166,6 @@ export default function DestinationPage() {
         >
           {loading ? "Calcul en cours…" : "Voir les zones"}
         </button>
-        {error && <p role="alert" style={{ color: "var(--occupied)" }}>{error}</p>}
       </section>
 
       {zones.length > 0 && (

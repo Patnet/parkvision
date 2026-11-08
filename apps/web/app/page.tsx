@@ -3,6 +3,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { Legend } from "@/components/Legend";
+import { useToast } from "@/components/ToastProvider";
 import { searchPostalCodes } from "@/lib/api";
 
 const ParkingMap = dynamic(
@@ -15,16 +16,18 @@ export default function HomePage() {
   const [candidates, setCandidates] = useState<
     { postal_code: string; commune_insee: string; label: string }[]
   >([]);
-  const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
     try {
       const results = await searchPostalCodes(query);
       setCandidates(results);
+      if (results.length === 0) {
+        showToast("Aucun résultat pour cette recherche.", "info");
+      }
     } catch {
-      setError("Recherche indisponible pour l'instant.");
+      showToast("Recherche indisponible pour l'instant.", "error");
     }
   }
 
@@ -52,7 +55,6 @@ export default function HomePage() {
             Rechercher
           </button>
         </form>
-        {error && <p role="alert" style={{ color: "var(--occupied)" }}>{error}</p>}
         {candidates.length > 1 && (
           <div style={{ marginTop: 10 }}>
             <p>Plusieurs communes correspondent, précisez votre choix :</p>

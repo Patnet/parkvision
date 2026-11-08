@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ConfirmReportButton } from "@/components/ConfirmReportButton";
 import { useToast } from "@/components/ToastProvider";
 import {
   fetchRecommendations,
@@ -191,20 +192,16 @@ export default function DestinationPage() {
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
                 {zone.spaces.slice(0, 3).map((space) => (
                   <div key={space.id} style={{ display: "flex", gap: 4 }}>
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() => handleReport(space.id, "PARKING")}
-                    >
-                      Je me gare ici
-                    </button>
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() => handleReport(space.id, "DEPARTURE")}
-                    >
-                      Je pars d&apos;ici
-                    </button>
+                    <ConfirmReportButton
+                      label="Je me gare ici"
+                      question="Vous semblez être stationné. Confirmez-vous ?"
+                      onConfirm={() => handleReport(space.id, "PARKING")}
+                    />
+                    <ConfirmReportButton
+                      label="Je pars d'ici"
+                      question="Vous semblez avoir quitté une place. Confirmez-vous ?"
+                      onConfirm={() => handleReport(space.id, "DEPARTURE")}
+                    />
                   </div>
                 ))}
               </div>

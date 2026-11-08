@@ -32,10 +32,19 @@ export function ParkingMap() {
       style: "https://tiles.openfreemap.org/styles/liberty",
       center: SIM_CENTER,
       zoom: 15,
+      attributionControl: false,
     });
     mapRef.current = map;
 
     map.addControl(new maplibregl.NavigationControl(), "top-right");
+    // Attribution requise par la licence ODbL des données OpenStreetMap
+    // servies par OpenFreeMap — cf. docs/data-source-register.md.
+    map.addControl(
+      new maplibregl.AttributionControl({
+        compact: true,
+        customAttribution: "© OpenStreetMap contributors (ODbL) via OpenFreeMap",
+      }),
+    );
 
     map.on("load", async () => {
       try {

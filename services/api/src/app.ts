@@ -10,6 +10,7 @@ import { destinationRoutes } from "./routes/destinations.js";
 import { segmentRoutes } from "./routes/segments.js";
 import { reportRoutes } from "./routes/reports.js";
 import { adminRoutes } from "./routes/admin.js";
+import { meRoutes } from "./routes/me.js";
 
 export async function buildApp(pool: Pool) {
   const app = Fastify({ logger: true });
@@ -46,6 +47,7 @@ export async function buildApp(pool: Pool) {
   await app.register(segmentRoutes);
   await app.register(reportRoutes);
   await app.register(adminRoutes);
+  await app.register(meRoutes);
 
   app.get("/", async (_request, reply) => {
     return reply.send({

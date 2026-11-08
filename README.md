@@ -15,6 +15,11 @@ Le risque principal n'est pas technique mais communautaire : une app de stationn
 ## Documentation
 
 - [`ParkVision_Cahier_des_charges_Codex_v1_4.md`](./ParkVision_Cahier_des_charges_Codex_v1_4.md) — cahier des charges technique complet et faisant autorité (architecture, modèle de données, API, UX/design system, Destination Assist, séquence de livraison, critères d'acceptation, RGPD).
+- [`docs/ux/SCREEN_INVENTORY.md`](./docs/ux/SCREEN_INVENTORY.md) — statut de chaque écran du §27/§32, écarts documentés.
+- [`docs/ux/USER_FLOWS.md`](./docs/ux/USER_FLOWS.md) — statut des parcours F1-F6 (§30).
+- [`docs/architecture/DESTINATION_ASSIST.md`](./docs/architecture/DESTINATION_ASSIST.md) — interfaces du §31 et leur implémentation réelle.
+- [`docs/data-source-register.md`](./docs/data-source-register.md) — registre des sources de données (§18), y compris OpenFreeMap (fond de carte réel).
+- [`docs/screenshots/`](./docs/screenshots/) — captures d'écran de vérification (mobile, appareil physique).
 
 ## Périmètre engagé maintenant (lots 1-2)
 

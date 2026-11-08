@@ -3,6 +3,7 @@ import { z } from "zod";
 import { CreateObservationInput } from "@parkvision/contracts";
 import {
   createManualObservation,
+  getObservationHistory,
   getSpaceById,
   getSpacesInBbox,
 } from "../repository.js";
@@ -69,6 +70,37 @@ export async function parkingRoutes(app: FastifyInstance) {
         return reply.status(404).send({ error: "Emplacement introuvable" });
       }
       return reply.send(serializeSpace(enriched));
+    },
+  );
+
+  app.get(
+    "/v1/parking/spaces/:id/observations",
+    {
+      schema: {
+        description:
+          "Historique court des observations d'un emplacement (P10) — déclarations, pas des confirmations.",
+        tags: ["parking"],
+        params: {
+          type: "object",
+          properties: { id: { type: "string" } },
+          required: ["id"],
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const history = await getObservationHistory(app.pg, id, 10);
+      return reply.send({
+        history: history.map((h) => ({
+          id: h.id,
+          occupancy: h.occupancy,
+          source: h.source,
+          verificationLevel: h.verification_level,
+          observedAt: h.observed_at.toISOString(),
+          expiresAt: h.expires_at.toISOString(),
+          moderationStatus: h.moderation_status,
+        })),
+      });
     },
   );
 

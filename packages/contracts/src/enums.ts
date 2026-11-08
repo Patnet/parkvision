@@ -49,3 +49,15 @@ export type ObservationKind = z.infer<typeof ObservationKind>;
 
 export const VehicleType = z.enum(["CAR", "MOTORBIKE", "EV", "PMR_AUTHORIZED"]);
 export type VehicleType = z.infer<typeof VehicleType>;
+
+export const ReportTargetType = z.enum(["SPACE", "SEGMENT", "OBSERVATION"]);
+export type ReportTargetType = z.infer<typeof ReportTargetType>;
+
+export const ReportReason = z.enum([
+  "WRONG_RULE",
+  "WRONG_LOCATION",
+  "STALE_DATA",
+  "ABUSE",
+  "OTHER",
+]);
+export type ReportReason = z.infer<typeof ReportReason>;

@@ -7,6 +7,9 @@ import { healthRoutes } from "./routes/health.js";
 import { geoRoutes } from "./routes/geo.js";
 import { parkingRoutes } from "./routes/parking.js";
 import { destinationRoutes } from "./routes/destinations.js";
+import { segmentRoutes } from "./routes/segments.js";
+import { reportRoutes } from "./routes/reports.js";
+import { adminRoutes } from "./routes/admin.js";
 
 export async function buildApp(pool: Pool) {
   const app = Fastify({ logger: true });
@@ -30,6 +33,7 @@ export async function buildApp(pool: Pool) {
         { name: "geo", description: "Recherche géographique et désambiguïsation" },
         { name: "parking", description: "Emplacements, règles, signalements manuels" },
         { name: "destinations", description: "Destination Assist simulé" },
+        { name: "admin", description: "Console admin (jeton partagé, lot 1-2)" },
       ],
     },
   });
@@ -39,6 +43,9 @@ export async function buildApp(pool: Pool) {
   await app.register(geoRoutes);
   await app.register(parkingRoutes);
   await app.register(destinationRoutes);
+  await app.register(segmentRoutes);
+  await app.register(reportRoutes);
+  await app.register(adminRoutes);
 
   app.get("/", async (_request, reply) => {
     return reply.send({

@@ -40,9 +40,8 @@ Ces fonctionnalités restent des pistes de recherche conditionnelles, chacune so
 
 ```
 apps/
-  web/                 # Next.js — carte, Destination Assist, onboarding, aide
+  web/                 # Next.js — carte, Destination Assist, fiches, admin basique
   mobile/              # Flutter (différé, non implémenté)
-  admin/               # Console admin (différé, non implémenté)
 services/
   api/                 # Node.js TypeScript, Fastify, Zod, OpenAPI, PostGIS
   simulator/           # générateur déterministe du quartier fictif SIM-45100
@@ -82,6 +81,13 @@ pnpm --filter @parkvision/api run dev    # :3001
 pnpm --filter @parkvision/web run dev    # :3000
 ```
 
+> `packages/contracts`, `packages/geo` et `services/simulator` se résolvent en production via leur sortie compilée (`dist/`). Après les avoir modifiés, reconstruisez-les avant de relancer l'API :
+> `pnpm --filter @parkvision/contracts run build && pnpm --filter @parkvision/geo run build && pnpm --filter @parkvision/simulator run build`
+
+### Console admin
+
+`http://localhost:3000/admin` — jeton partagé (`ADMIN_TOKEN`, défaut `dev-admin-token`), à saisir une fois dans l'écran de connexion. Couvre : tableau de bord (A02), qualité/couverture (A07), journal des observations (A06), réinitialisation reproductible du simulateur (A05), paramètres et adaptateurs (A08). Pas de vrai système de comptes/rôles — à remplacer avant tout déploiement.
+
 ### Tests
 
 ```bash
@@ -90,12 +96,22 @@ pnpm test   # packages/geo, services/simulator, services/api (26 tests)
 
 Les tests de l'API couvrent le moteur d'agrégation d'occupation (`availability.ts` — jamais de `FREE_CONFIRMED`/`OCCUPIED_CONFIRMED` sur simple déclaration, gestion des contradictions et expirations) et l'éligibilité légale (`legalEligibility.ts` — exclusion PMR/privé même si vide). Le simulateur est testé pour sa reproductibilité (seed fixe, 60 places, 4 rues).
 
+### Inventaire des écrans (§27 du cahier des charges)
+
+| Statut | Écrans |
+|---|---|
+| ✅ Fait | P00 (splash), P01-P03 (onboarding, fusionné en une page), P04 (choix d'accès, intégré à l'onboarding), P05-P08 (carte, recherche, Destination Assist), P09 (fiche tronçon `/zone/[id]`), P10 (fiche emplacement `/espace/[id]`), P11 (confirmation explicite oui/non/plus tard), P15 (itinéraire externe, intégré aux fiches), P16 (aide), P17 (paramètres), P20 (états système réutilisables), P21 (signalement `/signaler`) |
+| ❌ Non fait (V2/V3, hors scope lot 1-2) | P12 (historique de contributions), P13 (favoris), P14 (alertes), P18 (permissions natives), P19 (authentification) |
+
+Console admin (§32) : A01 (connexion), A02 (tableau de bord), A05 (contrôle simulateur), A06 (journal observations), A07 (qualité/couverture), A08 (paramètres) faits. A03/A04 (édition zones/emplacements) et A09 (export protocole pilote) non faits. A10/A11 hors scope (V2/V3).
+
 ### Vérifié localement (2026-11-08)
 
-- `pnpm install`, migrations, seed, API et web démarrés avec succès.
-- Endpoints testés manuellement : `/v1/health`, `/v1/geo/postal-codes`, `/v1/parking/spaces` (bbox, 60 résultats), `/v1/parking/spaces/:id`, `/v1/destinations/search`, `/v1/destinations/recommendations`, `/v1/observations` (idempotence confirmée).
-- Pages web testées via requêtes HTTP (200 sur `/`, `/destination`, `/aide`, `/onboarding`) ; **non vérifiées visuellement dans un navigateur** (outil indisponible dans cet environnement) — à faire avant toute démonstration.
-- Non fait : console admin, Flutter, tests E2E navigateur, CI.
+- `pnpm install`, migrations (0001 + 0002), seed, build complet (`contracts`/`geo`/`simulator`/`api`/`web`) et démarrage **en mode production compilé** (`node dist/index.js`, `next build` + `next start`) réussis — pas seulement en dev avec `tsx`/`next dev`.
+- Bug trouvé et corrigé pendant cette vérification : la réinitialisation du simulateur échouait sur un second appel (clé étrangère `postal_areas`/`roads` → `communes` sans cascade) ; corrigé dans `services/simulator/src/seedRunner.ts`.
+- Endpoints testés manuellement : tous ceux du tour précédent, plus `/v1/parking/segments/:id`, `/v1/parking/spaces/:id/observations`, `/v1/reports`, `/v1/admin/stats|observations|settings|simulation/reset` (garde par jeton testée, y compris le rejet 401 sans jeton).
+- Les 13 pages web répondent 200, y compris les 2 pages dynamiques (`/espace/[id]`, `/zone/[id]`) et `/admin/*` ; **rendu visuel non vérifié dans un navigateur** (outil indisponible dans cet environnement) — à faire avant toute démonstration.
+- Non fait : Flutter, tests E2E navigateur, CI, édition des zones/emplacements en admin (A03/A04), export du protocole pilote (A09).
 
 ## Principes non négociables
 

@@ -16,6 +16,7 @@
     "@fastify/swagger-ui": "^5.1.0",
     "@parkvision/contracts": "workspace:*",
     "@parkvision/geo": "workspace:*",
+    "@parkvision/simulator": "workspace:*",
     "fastify": "^5.0.0",
     "pg": "^8.13.0",
     "zod": "^3.23.8"

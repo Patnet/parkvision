@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SimulationBadge } from "@/components/SimulationBadge";
+import { Splash } from "@/components/Splash";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ToastProvider } from "@/components/ToastProvider";
 import "./globals.css";
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr">
       <body>
         <ToastProvider>
+          <Splash />
           <SimulationBadge />
           <header className="topbar">
             <span className="brand">ParkVision</span>
@@ -22,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/">Carte</Link>
               <Link href="/destination">Destination</Link>
               <Link href="/aide">Aide</Link>
+              <Link href="/parametres">Paramètres</Link>
               <Link href="/onboarding">Onboarding</Link>
             </nav>
             <ThemeToggle />

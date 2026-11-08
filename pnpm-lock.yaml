@@ -79,6 +79,9 @@ importers:
       '@parkvision/geo':
         specifier: workspace:*
         version: link:../../packages/geo
+      '@parkvision/simulator':
+        specifier: workspace:*
+        version: link:../simulator
       fastify:
         specifier: ^5.0.0
         version: 5.12.8

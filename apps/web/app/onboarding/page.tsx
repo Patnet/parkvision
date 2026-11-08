@@ -29,6 +29,15 @@ export default function OnboardingPage() {
           <li>Consentements séparés et révocables pour chaque fonctionnalité.</li>
         </ul>
       </section>
+      <section>
+        <h2>Comment accéder à ParkVision (P04)</h2>
+        <p style={{ color: "var(--text-muted)" }}>
+          Par défaut, vous explorez <strong>sans compte</strong> : carte,
+          recherche et signalements simulés restent disponibles. Un compte
+          facultatif (contribution multi-appareils, historique) est une piste
+          V2, pas une fonctionnalité de ce lot.
+        </p>
+      </section>
       <div style={{ display: "flex", gap: 10 }}>
         <Link href="/" className="primary" style={{ padding: "10px 16px", borderRadius: 6 }}>
           Explorer la carte

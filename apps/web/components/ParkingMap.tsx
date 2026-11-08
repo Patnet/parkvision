@@ -73,6 +73,12 @@ export function ParkingMap() {
       el.style.border = "2px solid white";
       el.style.background = COLOR_BY_OCCUPANCY[space.occupancy] ?? COLOR_BY_OCCUPANCY.UNKNOWN;
       el.title = `${space.occupancy} — ${space.rules.map((r) => r.category).join(", ") || "aucune restriction"}`;
+      el.style.cursor = "pointer";
+      el.setAttribute("role", "button");
+      el.setAttribute("aria-label", `Voir la fiche de l'emplacement fictif (${space.occupancy})`);
+      el.addEventListener("click", () => {
+        window.location.href = `/espace/${space.id}`;
+      });
 
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([space.coordinates.lon, space.coordinates.lat])

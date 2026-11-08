@@ -189,3 +189,99 @@ export async function searchPostalAreas(pool: Pool, query: string) {
   );
   return rows;
 }
+
+export interface SegmentRow {
+  id: string;
+  road_id: string;
+  road_name: string;
+  side: "LEFT" | "RIGHT" | "UNKNOWN";
+  verified_at: Date | null;
+}
+
+export async function getSegmentDetail(
+  pool: Pool,
+  segmentId: string,
+  now: Date,
+): Promise<{ segment: SegmentRow; spaces: EnrichedSpace[] } | null> {
+  const { rows } = await pool.query<SegmentRow>(
+    `SELECT s.id, s.road_id, r.name AS road_name, s.side, s.verified_at
+     FROM road_segments s JOIN roads r ON r.id = s.road_id
+     WHERE s.id = $1`,
+    [segmentId],
+  );
+  if (rows.length === 0) return null;
+
+  const { rows: spaceRows } = await pool.query<SpaceRow>(
+    `SELECT id, segment_id, ST_Y(geom) AS lat, ST_X(geom) AS lon,
+            inventory_status, provenance, verified_at, visibility, is_simulated
+     FROM parking_spaces WHERE segment_id = $1`,
+    [segmentId],
+  );
+  const spaces = await enrich(pool, spaceRows, now);
+  return { segment: rows[0], spaces };
+}
+
+export interface ObservationHistoryRow {
+  id: string;
+  occupancy: string;
+  source: ObservationSource;
+  verification_level: VerificationLevel;
+  observed_at: Date;
+  expires_at: Date;
+  moderation_status: "PENDING" | "ACCEPTED" | "REJECTED";
+}
+
+export async function getObservationHistory(
+  pool: Pool,
+  spaceId: string,
+  limit = 10,
+): Promise<ObservationHistoryRow[]> {
+  const { rows } = await pool.query<ObservationHistoryRow>(
+    `SELECT id, occupancy, source, verification_level, observed_at, expires_at, moderation_status
+     FROM observations
+     WHERE space_id = $1
+     ORDER BY observed_at DESC
+     LIMIT $2`,
+    [spaceId, limit],
+  );
+  return rows;
+}
+
+export async function createContentReport(
+  pool: Pool,
+  params: { targetType: string; targetId: string; reason: string; details?: string },
+): Promise<{ id: string }> {
+  const { rows } = await pool.query<{ id: string }>(
+    `INSERT INTO content_reports (target_type, target_id, reason, details)
+     VALUES ($1, $2, $3, $4) RETURNING id`,
+    [params.targetType, params.targetId, params.reason, params.details ?? null],
+  );
+  return rows[0];
+}
+
+export async function getAllSpaces(pool: Pool, now: Date): Promise<EnrichedSpace[]> {
+  const { rows } = await pool.query<SpaceRow>(
+    `SELECT id, segment_id, ST_Y(geom) AS lat, ST_X(geom) AS lon,
+            inventory_status, provenance, verified_at, visibility, is_simulated
+     FROM parking_spaces WHERE visibility = 'PUBLIC'`,
+  );
+  return enrich(pool, rows, now);
+}
+
+export async function listRecentObservations(pool: Pool, limit = 50) {
+  const { rows } = await pool.query<{
+    id: string;
+    space_id: string | null;
+    occupancy: string;
+    source: ObservationSource;
+    verification_level: VerificationLevel;
+    observed_at: Date;
+    expires_at: Date;
+    moderation_status: "PENDING" | "ACCEPTED" | "REJECTED";
+  }>(
+    `SELECT id, space_id, occupancy, source, verification_level, observed_at, expires_at, moderation_status
+     FROM observations ORDER BY received_at DESC LIMIT $1`,
+    [limit],
+  );
+  return rows;
+}

@@ -310,3 +310,77 @@ export async function getRoadsInBbox(
   );
   return rows;
 }
+
+// --- A03/A04 : gestion admin des tronçons et emplacements ---------------
+
+export interface AdminSegmentRow {
+  id: string;
+  road_name: string;
+  side: "LEFT" | "RIGHT" | "UNKNOWN";
+  verified_at: Date | null;
+  space_count: number;
+}
+
+export async function getAllSegmentsForAdmin(pool: Pool): Promise<AdminSegmentRow[]> {
+  const { rows } = await pool.query<AdminSegmentRow>(
+    `SELECT s.id, r.name AS road_name, s.side, s.verified_at,
+            count(p.id)::int AS space_count
+     FROM road_segments s
+     JOIN roads r ON r.id = s.road_id
+     LEFT JOIN parking_spaces p ON p.segment_id = s.id
+     GROUP BY s.id, r.name, s.side, s.verified_at
+     ORDER BY r.name, s.side`,
+  );
+  return rows;
+}
+
+export async function markSegmentVerified(pool: Pool, segmentId: string): Promise<boolean> {
+  const result = await pool.query(
+    `UPDATE road_segments SET verified_at = now() WHERE id = $1`,
+    [segmentId],
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function updateSpaceAdmin(
+  pool: Pool,
+  spaceId: string,
+  params: { inventoryStatus?: "KNOWN" | "ASSUMED" | "UNVERIFIED"; visibility?: "PUBLIC" | "HIDDEN" },
+): Promise<boolean> {
+  const sets: string[] = [];
+  const values: unknown[] = [];
+  if (params.inventoryStatus) {
+    values.push(params.inventoryStatus);
+    sets.push(`inventory_status = $${values.length}`);
+  }
+  if (params.visibility) {
+    values.push(params.visibility);
+    sets.push(`visibility = $${values.length}`);
+  }
+  if (sets.length === 0) return false;
+  values.push(spaceId);
+  const result = await pool.query(
+    `UPDATE parking_spaces SET ${sets.join(", ")} WHERE id = $${values.length}`,
+    values,
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function addRuleAdmin(
+  pool: Pool,
+  spaceId: string,
+  params: { category: string; permitRequired: boolean; recurringSchedule: string | null },
+): Promise<{ id: string }> {
+  const { rows } = await pool.query<{ id: string }>(
+    `INSERT INTO parking_rules (space_id, category, permit_required, recurring_schedule, source_url, verified_at)
+     VALUES ($1, $2, $3, $4, 'admin://manuel', now())
+     RETURNING id`,
+    [spaceId, params.category, params.permitRequired, params.recurringSchedule],
+  );
+  return rows[0];
+}
+
+export async function deleteRuleAdmin(pool: Pool, ruleId: string): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM parking_rules WHERE id = $1`, [ruleId]);
+  return (result.rowCount ?? 0) > 0;
+}

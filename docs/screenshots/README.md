@@ -11,6 +11,9 @@ Capturées le 2026-11-08 sur un **appareil Android physique** (OPPO CPH2195) via
 | `mobile-espace-confirm.png` | Fiche emplacement (`/espace/[id]`) — confirmation explicite « Vous semblez être stationné. Confirmez-vous ? » (oui/non/plus tard) |
 | `mobile-map-ocean-fixed.png` | Carte (`/`) après correction des coordonnées fictives (voir ci-dessous) — fond bleu (pleine mer), aucune route réelle visible |
 | `mobile-polyline-visible.png` | Carte (`/`) après ajout des polylines de rue (voir ci-dessous) — ligne de rue visible entre deux rangées de places, zoom rapproché |
+| `mobile-admin-zones.png` | Console admin — Gestion des zones/rues (`/admin/zones`, A03) — 8 tronçons, nombre de places, date de contrôle |
+| `mobile-admin-emplacements.png` | Console admin — Gestion des emplacements (`/admin/emplacements`, A04) — édition en direct du statut d'inventaire |
+| `mobile-admin-pilote-download.png` | Console admin — Préparation du pilote (`/admin/pilote`, A09) — téléchargement réel du protocole confirmé par Chrome ("Fichier téléchargé, 3,13 Ko") |
 
 **Desktop : non capturé.** Aucun outil de navigateur desktop n'est disponible dans cet environnement d'exécution ; seul l'accès via un appareil Android physique a permis une vérification visuelle réelle. À faire avant toute démonstration desktop.
 

@@ -91,7 +91,11 @@ pnpm --filter @parkvision/web run dev    # :3000
 
 ### Console admin
 
-`http://localhost:3000/admin` — jeton partagé (`ADMIN_TOKEN`, défaut `dev-admin-token`), à saisir une fois dans l'écran de connexion. Couvre : tableau de bord (A02), qualité/couverture (A07), journal des observations (A06), réinitialisation reproductible du simulateur (A05), paramètres et adaptateurs (A08). Pas de vrai système de comptes/rôles — à remplacer avant tout déploiement.
+`http://localhost:3000/admin` — jeton partagé (`ADMIN_TOKEN`, défaut `dev-admin-token`), à saisir une fois dans l'écran de connexion. Couvre : tableau de bord (A02), qualité/couverture (A07), gestion des zones/rues (A03), gestion des emplacements (A04), journal des observations (A06), réinitialisation reproductible du simulateur (A05), préparation du pilote (A09 — export protocole Markdown + gabarit CSV), paramètres et adaptateurs (A08). Pas de vrai système de comptes/rôles — à remplacer avant tout déploiement.
+
+### CI
+
+`.github/workflows/ci.yml` — build (packages partagés → api → web) et tests sur chaque push/PR vers `main`. Pas de service PostGIS en CI : les tests API tournent déjà contre un pool injoignable volontairement (ils testent le routage/la dégradation, pas l'intégration PostGIS réelle, couverte manuellement).
 
 ### Tests
 

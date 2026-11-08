@@ -39,13 +39,13 @@ Légende : ✅ fait (code réel, testé) · ⚠️ fait partiellement (écart do
 |---|---|---|---|---|
 | A01 | Connexion admin | `app/admin/layout.tsx` + `components/AdminGate.tsx` | ✅ | Jeton partagé (dev), pas de rôle/compte réel |
 | A02 | Tableau de bord simulation | `/admin` | ✅ | Répartition des états, avertissement simulation |
-| A03 | Gestion zones/rues | — | ❌ | Non fait |
-| A04 | Gestion emplacements | — | ❌ | Non fait (lecture possible via `/zone/[id]` et `/espace/[id]` côté public, mais pas d'édition admin) |
+| A03 | Gestion zones/rues | `/admin/zones` | ✅ | Liste des 8 tronçons (nom, côté, nb places), bouton « marquer contrôlé » (`POST /v1/admin/segments/:id/verify`) |
+| A04 | Gestion emplacements | `/admin/emplacements` | ✅ | Table des 60 places, édition statut inventaire/visibilité en direct, ajout/suppression de restrictions |
 | A05 | Contrôle du simulateur | `/admin/simulateur` | ✅ | Réinitialisation reproductible (bouton → `POST /v1/admin/simulation/reset`) |
 | A06 | Journal des observations | `/admin/observations` | ✅ | Table triée, 100 dernières observations |
 | A07 | Qualité et couverture | `/admin` (section dédiée) | ✅ | Taux d'inconnu, âge moyen des observations |
 | A08 | Paramètres / sources | `/admin/parametres` | ✅ | TTL, statut des adaptateurs mock |
-| A09 | Préparation du pilote | — | ❌ | Non fait |
+| A09 | Préparation du pilote | `/admin/pilote` | ✅ | Export protocole (Markdown) et gabarit de métriques (CSV vide) ; n'autorise ni ne démarre de collecte réelle |
 | A10 | Modération / utilisateurs | — | ❌ | V2, hors scope |
 | A11 | Connecteurs / capteurs | — | ❌ | V3, hors scope |
 

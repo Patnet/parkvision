@@ -9,9 +9,16 @@ export const SIM_COMMUNE_INSEE = "SIM45";
 export const SIM_COMMUNE_NAME = "Quartier fictif SIM-45100";
 export const SIM_POSTAL_CODE = "45100";
 
-// Origine arbitraire, en zone rurale sans adresse réelle, à ~15 km du
-// centre d'Orléans, pour écarter toute confusion avec le pilote réel.
-const SIM_ORIGIN: LatLon = { lat: 47.805, lon: 1.75 };
+// Origine volontairement en pleine mer (Atlantique, au large de la
+// Bretagne), là où aucune route réelle ne peut exister. Une première
+// version de cette constante était "à ~15 km du centre d'Orléans" : un
+// test sur appareil réel a montré que ces coordonnées étaient en fait
+// assez proches de la vraie rue Paul-Sougy pour qu'un moteur de
+// navigation externe (Waze) résolve le point vers cette rue réelle —
+// exactement la confusion simulation/réel interdite par le cahier des
+// charges (§1, §19). On s'éloigne donc délibérément de toute terre
+// habitée pour qu'aucune résolution d'adresse réelle ne soit possible.
+const SIM_ORIGIN: LatLon = { lat: 47.5, lon: -8.0 };
 
 export type SimRuleCategory =
   | "GENERAL"

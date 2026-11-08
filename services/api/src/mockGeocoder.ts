@@ -8,7 +8,10 @@ import type { DestinationCandidate } from "@parkvision/contracts";
  * interface `DestinationResolver` plus tard, hors lot 1-2.
  */
 
-const SIM_ORIGIN = { lat: 47.805, lon: 1.75 };
+// Doit rester synchronisé avec services/simulator/src/fixtures.ts —
+// pleine mer, loin de toute route réelle (voir le commentaire détaillé
+// là-bas sur le bug de résolution Waze→Paul-Sougy qui a motivé ce choix).
+const SIM_ORIGIN = { lat: 47.5, lon: -8.0 };
 
 const KNOWN_LOCATIONS: DestinationCandidate[] = [
   {

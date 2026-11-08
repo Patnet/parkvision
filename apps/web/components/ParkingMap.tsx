@@ -5,7 +5,10 @@ import maplibregl, { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { fetchSpacesInBbox, type ParkingSpaceDto } from "@/lib/api";
 
-const SIM_CENTER: [number, number] = [1.751, 47.806];
+// Doit rester synchronisé avec services/simulator/src/fixtures.ts (lon, lat)
+// — pleine mer, loin de toute route réelle. Voir le commentaire détaillé
+// là-bas sur le bug de résolution Waze→Paul-Sougy qui a motivé ce choix.
+const SIM_CENTER: [number, number] = [-8.0, 47.5];
 
 const COLOR_BY_OCCUPANCY: Record<string, string> = {
   FREE_CONFIRMED: "#3ccf7a",

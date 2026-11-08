@@ -8,6 +8,7 @@ import { geoRoutes } from "./routes/geo.js";
 import { parkingRoutes } from "./routes/parking.js";
 import { destinationRoutes } from "./routes/destinations.js";
 import { segmentRoutes } from "./routes/segments.js";
+import { roadRoutes } from "./routes/roads.js";
 import { reportRoutes } from "./routes/reports.js";
 import { adminRoutes } from "./routes/admin.js";
 import { meRoutes } from "./routes/me.js";
@@ -45,6 +46,7 @@ export async function buildApp(pool: Pool) {
   await app.register(parkingRoutes);
   await app.register(destinationRoutes);
   await app.register(segmentRoutes);
+  await app.register(roadRoutes);
   await app.register(reportRoutes);
   await app.register(adminRoutes);
   await app.register(meRoutes);

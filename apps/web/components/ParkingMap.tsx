@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import maplibregl, { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { fetchSpacesInBbox, type ParkingSpaceDto } from "@/lib/api";
+import { fetchRoadsInBbox, fetchSpacesInBbox, type ParkingSpaceDto, type RoadDto } from "@/lib/api";
+
+const ROADS_SOURCE_ID = "sim-roads";
+const ROADS_LAYER_ID = "sim-roads-line";
 
 // Doit rester synchronisé avec services/simulator/src/fixtures.ts (lon, lat)
 // — pleine mer, loin de toute route réelle. Voir le commentaire détaillé
@@ -26,6 +29,7 @@ export function ParkingMap() {
   const markersRef = useRef<Marker[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [spaceCount, setSpaceCount] = useState(0);
+  const [roadCount, setRoadCount] = useState(0);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -34,7 +38,13 @@ export function ParkingMap() {
       container: containerRef.current,
       style: "https://tiles.openfreemap.org/styles/liberty",
       center: SIM_CENTER,
-      zoom: 15,
+      // Zoom 15 montrait les 4 rues d'un coup, mais à cette échelle
+      // (~3 m/pixel) le décalage latéral réaliste des places (quelques
+      // mètres) est plus petit que le rayon des marqueurs (~9 px) : la
+      // polyline de rue restait entièrement cachée sous les marqueurs.
+      // À 18 (~0.4 m/pixel), le même décalage dépasse le rayon du
+      // marqueur et la rue redevient visible entre les deux rangées.
+      zoom: 18,
       attributionControl: false,
     });
     mapRef.current = map;
@@ -57,9 +67,14 @@ export function ParkingMap() {
           SIM_CENTER[0] + 0.01,
           SIM_CENTER[1] + 0.01,
         ];
-        const spaces = await fetchSpacesInBbox(bbox);
+        const [spaces, roads] = await Promise.all([
+          fetchSpacesInBbox(bbox),
+          fetchRoadsInBbox(bbox),
+        ]);
+        renderRoads(map, roads);
         renderMarkers(map, spaces);
         setSpaceCount(spaces.length);
+        setRoadCount(roads.length);
         setStatus("ready");
       } catch {
         setStatus("error");
@@ -72,6 +87,43 @@ export function ParkingMap() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function renderRoads(map: MapLibreMap, roads: RoadDto[]) {
+    const geojson = {
+      type: "FeatureCollection" as const,
+      features: roads.map((road) => ({
+        type: "Feature" as const,
+        properties: { name: road.name },
+        geometry: road.geometry,
+      })),
+    };
+
+    if (map.getSource(ROADS_SOURCE_ID)) {
+      (map.getSource(ROADS_SOURCE_ID) as maplibregl.GeoJSONSource).setData(
+        geojson as GeoJSON.FeatureCollection,
+      );
+      return;
+    }
+
+    map.addSource(ROADS_SOURCE_ID, { type: "geojson", data: geojson as GeoJSON.FeatureCollection });
+    map.addLayer(
+      {
+        id: ROADS_LAYER_ID,
+        type: "line",
+        source: ROADS_SOURCE_ID,
+        layout: {
+          "line-cap": "round",
+          "line-join": "round",
+        },
+        paint: {
+          "line-color": "#1a1a2e",
+          "line-width": 5,
+          "line-opacity": 0.85,
+        },
+      },
+      // sous les marqueurs (ajoutés après) mais au-dessus du fond de carte
+    );
+  }
 
   function renderMarkers(map: MapLibreMap, spaces: ParkingSpaceDto[]) {
     for (const marker of markersRef.current) marker.remove();
@@ -110,7 +162,7 @@ export function ParkingMap() {
       <div style={{ marginTop: 8, fontSize: "0.85rem", color: "var(--text-muted)" }}>
         {status === "loading" && "Chargement des emplacements fictifs…"}
         {status === "ready" &&
-          `${spaceCount} emplacements fictifs chargés depuis l'API de simulation.`}
+          `${spaceCount} emplacements fictifs et ${roadCount} rues chargés depuis l'API de simulation.`}
         {status === "error" &&
           "API indisponible : vérifiez que les services Docker (api, postgres) sont démarrés."}
       </div>

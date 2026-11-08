@@ -103,7 +103,11 @@ export function buildSpaces(streets: SimStreet[]): SimSpace[] {
         lon: street.start.lon + (street.end.lon - street.start.lon) * t,
       };
       const side: "LEFT" | "RIGHT" = i % 2 === 0 ? "RIGHT" : "LEFT";
-      const lateral = side === "RIGHT" ? 3 : -3; // 3 m de part et d'autre de l'axe
+      // 8 m de part et d'autre de l'axe (distance de trottoir plausible) ;
+      // à 3 m, les places recouvraient visuellement le tracé de la rue
+      // sur la carte (polyline invisible sous les marqueurs), même à
+      // zoom rapproché.
+      const lateral = side === "RIGHT" ? 8 : -8;
       const coordinates = offsetMeters(along, lateral, 0);
 
       spaces.push({

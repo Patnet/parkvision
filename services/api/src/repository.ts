@@ -285,3 +285,28 @@ export async function listRecentObservations(pool: Pool, limit = 50) {
   );
   return rows;
 }
+
+export interface RoadRow {
+  id: string;
+  name: string;
+  geojson: string;
+}
+
+/**
+ * Géométrie des rues (tronçon au sens large) pour le tracé de polylines
+ * sur la carte — cf. cahier des charges v1.4 §29.2 "zoom intermédiaire :
+ * tronçons et restrictions". Jusqu'ici seules les places (points) étaient
+ * exposées ; la rue elle-même n'était jamais rendue.
+ */
+export async function getRoadsInBbox(
+  pool: Pool,
+  bbox: [number, number, number, number],
+): Promise<RoadRow[]> {
+  const { rows } = await pool.query<RoadRow>(
+    `SELECT id, name, ST_AsGeoJSON(geom) AS geojson
+     FROM roads
+     WHERE ST_Intersects(geom, ST_MakeEnvelope($1, $2, $3, $4, 4326))`,
+    bbox,
+  );
+  return rows;
+}

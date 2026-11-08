@@ -21,6 +21,21 @@ export interface ParkingSpaceDto {
   rules: RuleDto[];
 }
 
+export interface RoadDto {
+  id: string;
+  name: string;
+  geometry: { type: string; coordinates: unknown };
+}
+
+export async function fetchRoadsInBbox(bbox: [number, number, number, number]): Promise<RoadDto[]> {
+  const res = await fetch(`${API_URL}/v1/parking/roads?bbox=${bbox.join(",")}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Impossible de charger les rues fictives.");
+  const data = await res.json();
+  return data.roads as RoadDto[];
+}
+
 export async function fetchHealth(): Promise<boolean> {
   try {
     const res = await fetch(`${API_URL}/v1/health`, { cache: "no-store" });

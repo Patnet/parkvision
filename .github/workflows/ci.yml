@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Build shared packages
+        run: |
+          pnpm --filter @parkvision/contracts run build
+          pnpm --filter @parkvision/geo run build
+          pnpm --filter @parkvision/simulator run build
+
+      - name: Build API
+        run: pnpm --filter @parkvision/api run build
+
+      - name: Build web
+        run: pnpm --filter @parkvision/web run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+
+      - name: Test geo
+        run: pnpm --filter @parkvision/geo test
+
+      - name: Test simulator
+        run: pnpm --filter @parkvision/simulator test
+
+      - name: Test API
+        run: pnpm --filter @parkvision/api test
